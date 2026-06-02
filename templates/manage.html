@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ gallery.name }} 管理页</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  </head>
+  <body class="manage-body">
+    <main class="manage-shell">
+      <header>
+        <p class="eyebrow">Local Admin</p>
+        <h1>入口交互系统管理</h1>
+        <p>这里先展示当前写在本地程序里的画廊资料和 FAQ。后续可以升级为可编辑后台。</p>
+      </header>
+
+      <section class="manage-grid">
+        <article class="admin-card">
+          <h2>画廊信息</h2>
+          <dl>
+            <dt>公司</dt>
+            <dd>{{ gallery.company }}</dd>
+            <dt>名称</dt>
+            <dd>{{ gallery.name }}</dd>
+            <dt>开放时间</dt>
+            <dd>{{ gallery.opening_hours }}</dd>
+            <dt>休馆</dt>
+            <dd>{{ gallery.closed }}</dd>
+            <dt>地址</dt>
+            <dd>{{ gallery.address }}</dd>
+            <dt>电话</dt>
+            <dd>{{ gallery.phone }}</dd>
+            <dt>邮箱</dt>
+            <dd>{{ gallery.email }}</dd>
+            <dt>官网</dt>
+            <dd>{{ gallery.website }}</dd>
+            <dt>Instagram</dt>
+            <dd>{{ gallery.instagram }}</dd>
+            <dt>WeChat</dt>
+            <dd>{{ gallery.wechat }}</dd>
+            <dt>小红书</dt>
+            <dd>{{ gallery.xiaohongshu }}</dd>
+          </dl>
+        </article>
+
+        <article class="admin-card">
+          <h2>问答内容</h2>
+          <ul class="faq-list">
+            {% for faq in faqs %}
+            <li>
+              <strong>{{ faq.keywords | join(" / ") }}</strong>
+              <span>{{ faq.answer }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

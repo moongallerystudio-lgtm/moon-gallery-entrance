@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ gallery.name }} 入口接待</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  </head>
+  <body>
+    <main class="kiosk-shell">
+      <section class="avatar-stage" aria-label="虚拟接待员">
+        <div id="status-pill" class="status-pill">入口接待中</div>
+        <div id="avatar" class="orbital-avatar" aria-hidden="true">
+          <div class="halo"></div>
+          <div class="voice-rings"></div>
+          <img class="bunny-avatar" src="{{ url_for('static', filename='bunny-head.png') }}" alt="" />
+        </div>
+        <div class="intro">
+          <p class="eyebrow">Virtual Host</p>
+          <h1>{{ gallery.name }}</h1>
+          <p id="intro-copy">{{ gallery.mission }} 我可以介绍展览、回答参观问题，或帮你呼叫工作人员。</p>
+        </div>
+      </section>
+
+      <section class="dialog-panel" aria-label="互动问答">
+        <div class="language-switch" aria-label="语言切换">
+          <button type="button" data-lang="zh" class="is-active">中文</button>
+          <button type="button" data-lang="ja">日本語</button>
+          <button type="button" data-lang="en">English</button>
+        </div>
+
+        <div id="messages" class="messages">
+          <article class="message bot">
+            <span id="welcome-message">你好，我是 Moon Gallery 的虚拟接待员。请选择一个问题，或直接输入你想了解的内容。</span>
+          </article>
+        </div>
+
+        <div id="quick-topics" class="quick-topics" aria-label="快捷问题">
+          <button type="button"></button>
+          <button type="button"></button>
+          <button type="button"></button>
+          <button type="button"></button>
+          <button type="button"></button>
+          <button type="button"></button>
+        </div>
+
+        <form id="chat-form" class="chat-form">
+          <input id="chat-input" name="message" autocomplete="off" placeholder="输入问题，例如：今天几点关门？" />
+          <button id="voice-button" class="voice-button" type="button" aria-label="开启语音唤醒" title="开启语音唤醒">开启唤醒</button>
+          <button type="submit">发送</button>
+        </form>
+        <p id="voice-status" class="voice-status" aria-live="polite">点击开启唤醒后，说“你好”开始语音对话。</p>
+
+        <div class="gallery-meta">
+          <span id="hours-meta">开放时间 {{ gallery.opening_hours }}</span>
+          <span>{{ gallery.address }}</span>
+        </div>
+      </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+  </body>
+</html>
