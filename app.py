@@ -132,9 +132,9 @@ LOCAL_REPLIES = {
         "en": "I am here. You can ask me about the exhibition, hours, access, or anything you need.",
     },
     "greeting": {
-        "zh": "你好，欢迎来到 Moon Gallery & Studio。今天想先看看展览，还是有事情想问我？",
-        "ja": "こんにちは。Moon Gallery & Studioへようこそ。展示をご覧になりますか、それとも何かお聞きになりますか？",
-        "en": "Hello, welcome to Moon Gallery & Studio. Would you like to see the exhibition first, or ask me something?",
+        "zh": "你好呀，欢迎来 Moon Gallery & Studio。你可以先慢慢看，有想问的我就在这里。",
+        "ja": "こんにちは。Moon Gallery & Studioへようこそ。どうぞゆっくりご覧ください。気になることがあれば声をかけてくださいね。",
+        "en": "Hi, welcome to Moon Gallery & Studio. Take your time looking around, and I am right here if you need me.",
     },
     "thanks": {
         "zh": "不客气。你慢慢看，有需要随时叫我。",
@@ -217,9 +217,9 @@ LOCAL_REPLIES = {
         "en": "Moon Gallery & Studio is an art space in Kita-Ueno, Taito-ku, Tokyo, offering exhibitions, exchange, studio services, workshops, and art education.",
     },
     "fallback": {
-        "zh": "我可能还没完全听明白。你可以换个说法，或者直接问我开放时间、地址、拍照规则、展览、预约、作品购买和工房服务。",
-        "ja": "すみません、少し聞き取れなかったかもしれません。営業時間、アクセス、撮影ルール、展示、予約、購入、工房サービスについて聞いてみてください。",
-        "en": "I may not have understood completely. You can rephrase, or ask me about hours, access, photo rules, exhibitions, reservations, purchases, or studio services.",
+        "zh": "嗯，我刚刚有点没接住。你可以再说一遍，或者直接问我展览、开放时间、地址、拍照、预约这些都可以。",
+        "ja": "すみません、今のところを少し聞き逃したかもしれません。展示、営業時間、アクセス、撮影、予約など、もう一度聞いてみてください。",
+        "en": "Sorry, I may have missed that. You can say it again, or ask me about the exhibition, hours, access, photos, or reservations.",
     },
 }
 
@@ -235,7 +235,9 @@ SUGGESTED_TOPICS = [
 
 SYSTEM_PROMPT = """
 你是 Moon Gallery & Studio 入口处 iPad 上的虚拟接待员。
-说话要自然、温和、简短，像现场工作人员，不要像客服模板。
+说话要自然、温和、带一点可爱的亲近感，像现场工作人员，不要像客服模板。
+每次回答 1-3 句，避免列表、套话和“请问还有什么可以帮您”。
+如果访客只是闲聊或打招呼，就轻松回应一句，不要马上推销画廊信息。
 优先回答访客当下的问题；如果只是打招呼，就友好寒暄，不要主动背诵画廊资料。
 不知道的信息要诚实说明，并建议查看现场公告或联系工作人员。
 回答语言跟随访客语言，默认使用中文。
@@ -338,12 +340,18 @@ def call_language_model(message: str, language: str) -> str | None:
     try:
         with urlopen(request, timeout=15) as response:
             data = json.loads(response.read().decode("utf-8"))
-    except (HTTPError, URLError, TimeoutError, json.JSONDecodeError):
+    except HTTPError as error:
+        body = error.read().decode("utf-8", errors="replace")[:500]
+        app.logger.warning("LLM HTTP error %s from %s: %s", error.code, base_url, body)
+        return None
+    except (URLError, TimeoutError, json.JSONDecodeError) as error:
+        app.logger.warning("LLM request failed for %s: %s", base_url, error)
         return None
 
     try:
         content = data["choices"][0]["message"]["content"].strip()
-    except (KeyError, IndexError, TypeError, AttributeError):
+    except (KeyError, IndexError, TypeError, AttributeError) as error:
+        app.logger.warning("LLM response parse failed: %s", error)
         return None
 
     return content or None

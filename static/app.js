@@ -302,8 +302,8 @@ function speak(text, language = currentLanguage, onEnd) {
     utterance.voice = preferredVoice;
     utterance.lang = preferredVoice.lang;
   }
-  utterance.rate = language === "ja" ? 0.9 : 0.93;
-  utterance.pitch = 1.08;
+  utterance.rate = language === "ja" ? 0.86 : 0.9;
+  utterance.pitch = 1.18;
   utterance.onstart = () => setAvatarMode("speaking", true);
   utterance.onend = () => {
     setAvatarMode("speaking", false);
