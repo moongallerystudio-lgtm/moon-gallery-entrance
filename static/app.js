@@ -25,11 +25,18 @@ let currentVoiceLanguage = "zh-CN";
 let scanIndex = 0;
 let manuallyStopping = false;
 let voiceUnavailableReason = "";
+let cachedVoices = [];
 
 const voiceLanguageMap = {
   zh: "zh-CN",
   ja: "ja-JP",
   en: "en-US",
+};
+
+const preferredVoiceNames = {
+  zh: ["ting-ting", "meijia", "mei-jia", "sandy", "shelley", "flo", "sin-ji", "li-mu"],
+  ja: ["kyoko", "sandy", "shelley", "flo", "otoya"],
+  en: ["samantha", "ava", "allison", "karen", "moira", "tessa", "sandy", "shelley", "flo"],
 };
 
 const scanLanguages = ["zh", "ja", "en"];
@@ -240,6 +247,46 @@ function cleanSpeechText(text) {
     .trim();
 }
 
+function refreshVoices() {
+  cachedVoices = speech?.getVoices ? speech.getVoices() : [];
+}
+
+function getPreferredVoice(language) {
+  if (!speech?.getVoices) return null;
+
+  const targetLang = voiceLanguageMap[language] || "zh-CN";
+  const targetPrefix = targetLang.split("-")[0];
+  const preferredNames = preferredVoiceNames[language] || [];
+  const voices = cachedVoices.length ? cachedVoices : speech.getVoices();
+
+  if (!voices.length) return null;
+
+  const scoredVoices = voices
+    .map((voice) => {
+      const voiceName = voice.name.toLowerCase();
+      const voiceLang = voice.lang.toLowerCase();
+      const exactLanguage = voiceLang === targetLang.toLowerCase();
+      const sameLanguage = voiceLang.startsWith(targetPrefix);
+      const nameIndex = preferredNames.findIndex((name) => voiceName.includes(name));
+      const preferredName = nameIndex >= 0 ? 50 - nameIndex : 0;
+      const localBonus = voice.localService ? 4 : 0;
+
+      return {
+        voice,
+        score: (exactLanguage ? 100 : 0) + (sameLanguage ? 30 : 0) + preferredName + localBonus,
+      };
+    })
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  return scoredVoices[0]?.voice || null;
+}
+
+if (speech) {
+  refreshVoices();
+  speech.addEventListener?.("voiceschanged", refreshVoices);
+}
+
 function speak(text, language = currentLanguage, onEnd) {
   const speechText = cleanSpeechText(text);
   if (!speech || !speechText) {
@@ -250,8 +297,13 @@ function speak(text, language = currentLanguage, onEnd) {
   speech.cancel();
   const utterance = new SpeechSynthesisUtterance(speechText);
   utterance.lang = voiceLanguageMap[language] || "zh-CN";
-  utterance.rate = language === "ja" ? 0.92 : 0.95;
-  utterance.pitch = 1.05;
+  const preferredVoice = getPreferredVoice(language);
+  if (preferredVoice) {
+    utterance.voice = preferredVoice;
+    utterance.lang = preferredVoice.lang;
+  }
+  utterance.rate = language === "ja" ? 0.9 : 0.93;
+  utterance.pitch = 1.08;
   utterance.onstart = () => setAvatarMode("speaking", true);
   utterance.onend = () => {
     setAvatarMode("speaking", false);
