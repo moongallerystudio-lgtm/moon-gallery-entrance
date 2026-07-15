@@ -34,10 +34,12 @@ const voiceLanguageMap = {
 };
 
 const preferredVoiceNames = {
-  zh: ["ting-ting", "meijia", "mei-jia", "sandy", "shelley", "flo", "sin-ji", "li-mu"],
-  ja: ["kyoko", "sandy", "shelley", "flo", "otoya"],
-  en: ["samantha", "ava", "allison", "karen", "moira", "tessa", "sandy", "shelley", "flo"],
+  zh: ["ting-ting", "meijia", "mei-jia", "sin-ji", "li-mu", "yuna"],
+  ja: ["kyoko", "otoya", "hattori", "ichiro"],
+  en: ["samantha", "ava", "allison", "karen", "moira", "tessa", "serena", "susan"],
 };
+
+const avoidedVoiceNames = ["sandy", "shelley", "flo", "bahh", "bells", "boing", "bubbles", "cellos", "trinoids", "whisper", "zarvox"];
 
 const scanLanguages = ["zh", "ja", "en"];
 
@@ -269,11 +271,13 @@ function getPreferredVoice(language) {
       const sameLanguage = voiceLang.startsWith(targetPrefix);
       const nameIndex = preferredNames.findIndex((name) => voiceName.includes(name));
       const preferredName = nameIndex >= 0 ? 50 - nameIndex : 0;
+      const naturalBonus = voiceName.includes("premium") || voiceName.includes("enhanced") ? 12 : 0;
       const localBonus = voice.localService ? 4 : 0;
+      const avoidedPenalty = avoidedVoiceNames.some((name) => voiceName.includes(name)) ? 80 : 0;
 
       return {
         voice,
-        score: (exactLanguage ? 100 : 0) + (sameLanguage ? 30 : 0) + preferredName + localBonus,
+        score: (exactLanguage ? 100 : 0) + (sameLanguage ? 30 : 0) + preferredName + naturalBonus + localBonus - avoidedPenalty,
       };
     })
     .filter(({ score }) => score > 0)
@@ -302,8 +306,8 @@ function speak(text, language = currentLanguage, onEnd) {
     utterance.voice = preferredVoice;
     utterance.lang = preferredVoice.lang;
   }
-  utterance.rate = language === "ja" ? 0.86 : 0.9;
-  utterance.pitch = 1.18;
+  utterance.rate = language === "ja" ? 0.92 : 0.96;
+  utterance.pitch = 1.04;
   utterance.onstart = () => setAvatarMode("speaking", true);
   utterance.onend = () => {
     setAvatarMode("speaking", false);
